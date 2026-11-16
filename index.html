@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en" class="app-html">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#272A44">
+<meta name="format-detection" content="telephone=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Swift Line Capital &mdash; DSCR Term Sheet Generator</title>
+<style>
+/* ===== TEMPLATE CSS (term sheet look) ===== */
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #272A44;
+    --navy2: #38394E;
+    --green: #60B654;
+    --line: #D8DCE4;
+    --bg: #F4F6F9;
+    --muted: #6B7280;
+  }
+
+  #sheetbox {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--navy);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .page {
+    width: 8.5in; height: 11in;
+    padding: 0.45in 0.55in 0.38in 0.55in;
+    display: flex; flex-direction: column;
+  }
+  /* Never let a long options table squeeze the blocks above it. */
+  .page > * { flex: none; }
+
+  /* Header */
+  header { display: flex; align-items: flex-end; justify-content: space-between; }
+  header img { height: 0.68in; }
+  .title { text-align: right; }
+  .title h1 { font-size: 16.5pt; letter-spacing: 1.6px; font-weight: 700; line-height: 1.1; }
+  .title .sub { font-size: 8pt; letter-spacing: 2.4px; color: var(--green); font-weight: 700; margin-top: 3px; text-transform: uppercase; }
+  .rule { height: 3px; background: var(--navy); margin: 9px 0 0; position: relative; }
+  .rule::after { content:""; position:absolute; left:0; top:0; height:3px; width:22%; background: var(--green); }
+
+  /* Party strip */
+  .parties { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-top: 9px;
+             border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+  .parties div { padding: 8px 9px; border-right: 1px solid var(--line); }
+  .parties div:last-child { border-right: 0; }
+  .parties .k { font-size: 6pt; letter-spacing: 1.1px; color: var(--muted); text-transform: uppercase; font-weight: 700; }
+  .parties .v { font-size: 8.6pt; font-weight: 600; margin-top: 2px; line-height: 1.25; }
+  .parties .wide { grid-column: span 2; border-right: 0; }
+
+  /* Section headings */
+  .sechead { font-size: 7pt; letter-spacing: 1.8px; font-weight: 700; text-transform: uppercase;
+             color: #fff; background: var(--navy); padding: 4px 8px; border-radius: 2px 2px 0 0; }
+
+  .card { border: 1px solid var(--line); border-top: 0; border-radius: 0 0 3px 3px; }
+  .row { display: flex; justify-content: space-between; align-items: baseline;
+         padding: 6.4px 10px; border-bottom: 1px solid #EDEFF3; font-size: 8.6pt; }
+  .row:last-child { border-bottom: 0; }
+  .row .k { color: #4B5164; }
+  .row .v { font-weight: 700; }
+  .row.alt { background: var(--bg); }
+
+  /* Property summary: four facts across one strip */
+  .propgrid { display: grid; grid-template-columns: repeat(5, 1fr); }
+  .propgrid > div { padding: 6.4px 9px; border-right: 1px solid #EDEFF3; border-bottom: 0; }
+  .propgrid > div:last-child { border-right: 0; }
+  .propgrid .k { font-size: 6pt; letter-spacing: 1px; color: var(--muted);
+                 text-transform: uppercase; font-weight: 700; }
+  .propgrid .v { font-size: 9pt; font-weight: 700; margin-top: 2px; }
+
+  .blk { margin-top: 9px; }
+
+  /* ===== Loan options comparison table ===== */
+  .opts { font-size: 7.7pt; }
+  .orow { display: grid; }
+  .orow > div { padding: 2.8px 7px; border-bottom: 1px solid #EDEFF3;
+                border-left: 1px solid #EDEFF3; }
+  .orow > div:first-child { border-left: 0; color: #4B5164; }
+  .orow > div + div { font-weight: 700; text-align: right; }
+  .orow.alt > div { background: var(--bg); }
+  .orow:last-child > div { border-bottom: 0; }
+  .orow.ohead > div { background: var(--navy2); color: #fff; font-size: 6.8pt;
+                      letter-spacing: 1px; text-transform: uppercase; font-weight: 700;
+                      text-align: center; border-left-color: rgba(255,255,255,.22);
+                      padding: 5px 6px; }
+  .orow.ohead > div:first-child { color: #B9C0D4; text-align: left; }
+  .orow.band > div { background: #EDEFF3; color: var(--navy); font-size: 6.3pt;
+                     letter-spacing: 1.3px; text-transform: uppercase; font-weight: 700;
+                     text-align: left; padding: 2.4px 8px; grid-column: 1 / -1;
+                     border-left: 0; }
+  .orow.total > div { background: #EEF6EC; border-top: 1px solid var(--green);
+                      font-weight: 700; }
+  .orow .sub { display: block; font-size: 5.9pt; font-weight: 500; color: var(--muted);
+               letter-spacing: .2px; margin-top: 1px; }
+  .orow > div + div .sub { color: #7A8192; }
+  /* Fewer options means more room, so loosen the rows a little. */
+  .opts.wide .orow > div { padding: 3px 9px; }
+  .opts.wide { font-size: 8pt; }
+
+  .fine { font-size: 8pt; color: #4B5164; margin-top: 7px; line-height: 1.42; }
+
+  /* Signature */
+  .ack { margin-top: 9px; border: 1px solid var(--line); border-radius: 3px; padding: 9px 11px; }
+  .ack h3 { font-size: 7.4pt; letter-spacing: 1.6px; text-transform: uppercase; color: var(--navy); }
+  .ack p { font-size: 7.6pt; color: #4B5164; margin-top: 4px; line-height: 1.45; }
+  .siglines { display: grid; grid-template-columns: 2.2fr 1fr 2.2fr; gap: 18px; margin-top: 14px; }
+  .sig { border-top: 1px solid var(--navy); padding-top: 3px; font-size: 6.6pt; letter-spacing: 1.1px;
+         text-transform: uppercase; color: var(--muted); font-weight: 700; }
+
+  footer { margin-top: auto; padding-top: 8px; }
+  .disc { font-size: 6.6pt; color: var(--muted); line-height: 1.5; text-align: justify; }
+  .contact { margin-top: 7px; border-top: 2px solid var(--green); padding-top: 5px;
+             display: flex; justify-content: space-between; font-size: 7pt; font-weight: 600; }
+  .contact .co { color: var(--navy); font-weight: 700; letter-spacing: .6px; }
+  .contact .meta { color: var(--muted); font-weight: 600; }
+
+/* ===== APP CHROME ===== */
+html.app-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body.app { width: auto; height: auto; background: #EEF1F6;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #272A44;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  -webkit-tap-highlight-color: rgba(96,182,84,.18); }
+*, *::before, *::after { box-sizing: border-box; }
+.app-wrap { display: grid; grid-template-columns: 380px 1fr; min-height: 100vh; min-height: 100dvh; }
+.panel { background: #fff; border-right: 1px solid #D8DCE4; padding: 20px 20px 40px; overflow-y: auto;
+  max-height: 100vh; max-height: 100dvh; -webkit-overflow-scrolling: touch; min-width: 0; }
+.panel h2 { font-size: 15px; letter-spacing: .5px; color: #272A44; margin-bottom: 2px; }
+.panel .tag { font-size: 11px; color: #6B7280; margin-bottom: 16px; }
+.panel img.brand { height: 34px; margin-bottom: 14px; }
+.fieldset { border: 0; margin-bottom: 14px; }
+.fieldset > legend { font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; color: #60B654;
+  font-weight: 800; margin-bottom: 8px; }
+label { display: block; font-size: 11px; font-weight: 700; color: #4B5164; margin: 9px 0 3px; }
+label .req { color: #C0392B; }
+label .hint { display: block; font-weight: 500; font-size: 10px; color: #8A90A0; margin-top: 1px; }
+label .opt { display: inline-block; font-size: 9px; letter-spacing: .6px; text-transform: uppercase;
+  color: #8A90A0; background: #F1F3F7; border-radius: 3px; padding: 1px 5px; margin-left: 4px;
+  vertical-align: middle; font-weight: 700; }
+input, select { width: 100%; max-width: 100%; padding: 7px 9px; font-size: 13px; font-family: inherit;
+  color: #272A44; border: 1px solid #CBD1DC; border-radius: 4px; background: #fff;
+  -webkit-appearance: none; appearance: none; }
+select { background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%236B7280' d='M0 0h10L5 6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+input[type="date"] { min-height: 1.2em; }
+input:focus, select:focus { outline: 2px solid #60B654; outline-offset: -1px; border-color: #60B654; }
+input.bad { border-color: #C0392B; background: #FDF3F2; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btns { background: #fff; padding-top: 14px; margin-top: 18px;
+  border-top: 1px solid #E4E7EE; display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+.btns .wide { grid-column: 1 / -1; }
+button { padding: 11px; font-size: 13px; font-weight: 700; font-family: inherit; border: 0; border-radius: 5px;
+  cursor: pointer; letter-spacing: .4px; }
+button.primary { background: #60B654; color: #fff; }
+button.primary:hover { background: #4FA344; }
+button.ghost { background: #F1F3F7; color: #4B5164; }
+button.ghost:hover { background: #E4E7EE; }
+button.mail { background: #272A44; color: #fff; }
+button.mail:hover { background: #38394E; }
+.err { background: #FDF3F2; border: 1px solid #E8B4AE; color: #A03127; font-size: 11.5px;
+  padding: 8px 10px; border-radius: 4px; margin-top: 10px; display: none; }
+.warn { background: #FFF8E8; border: 1px solid #E8D5A4; color: #8A6400; font-size: 11.5px;
+  padding: 8px 10px; border-radius: 4px; margin-top: 10px; display: none; }
+
+/* Option cards in the form */
+.optcard { border: 1px solid #E4E7EE; border-radius: 6px; padding: 10px 11px 12px; margin-bottom: 10px;
+  background: #FCFDFE; }
+.optcard.off { background: #F7F8FA; opacity: .62; }
+.optcard > .ohdr { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.optcard .oname { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; font-weight: 800;
+  color: #60B654; }
+.optcard.off .oname { color: #8A90A0; }
+.optcard .obody { margin-top: 2px; }
+.optcard.off .obody { display: none; }
+.sw { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700;
+  color: #6B7280; cursor: pointer; margin: 0; white-space: nowrap; }
+.sw input { width: 34px; height: 19px; margin: 0; border-radius: 19px; background: #D8DCE4;
+  border: 0; position: relative; cursor: pointer; transition: background .15s; flex: none; padding: 0; }
+.sw input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px;
+  border-radius: 50%; background: #fff; transition: transform .15s; }
+.sw input:checked { background: #60B654; }
+.sw input:checked::after { transform: translateX(15px); }
+.sw input:disabled { opacity: .55; cursor: default; }
+.optcard .dscrchip { font-size: 10px; font-weight: 800; letter-spacing: .4px; border-radius: 3px;
+  padding: 2px 6px; background: #EEF6EC; color: #3E7F35; }
+.optcard .dscrchip.low { background: #FDF3F2; color: #A03127; }
+
+.stage { padding: 24px; display: flex; justify-content: center; align-items: flex-start; overflow: auto; }
+.sheetbox { transform-origin: top center; box-shadow: 0 6px 26px rgba(20,25,45,.16); background: #fff; }
+.stage-label { display: none; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+  color: #8A90A0; font-weight: 800; margin: 0 0 10px; text-align: center; }
+.stage-inner { width: 100%; display: flex; flex-direction: column; align-items: center; }
+
+/* ===== EMAIL MODAL ===== */
+.mbk { position: fixed; inset: 0; background: rgba(20,25,45,.52); z-index: 90; display: none;
+  align-items: center; justify-content: center; padding: 16px; }
+.mbk.on { display: flex; }
+.mdl { background: #fff; border-radius: 10px; width: 100%; max-width: 420px; padding: 18px 18px 16px;
+  box-shadow: 0 18px 50px rgba(20,25,45,.3); max-height: 92vh; overflow-y: auto; }
+.mdl h3 { font-size: 15px; margin-bottom: 2px; }
+.mdl .sub { font-size: 11px; color: #6B7280; margin-bottom: 10px; }
+.mdl .mrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.mdl .msg { font-size: 11.5px; padding: 8px 10px; border-radius: 4px; margin-top: 10px; display: none; }
+.mdl .msg.ok { background: #EEF6EC; border: 1px solid #BFE3B8; color: #3E7F35; display: block; }
+.mdl .msg.no { background: #FDF3F2; border: 1px solid #E8B4AE; color: #A03127; display: block; }
+textarea { width: 100%; padding: 8px 9px; font-size: 13px; font-family: inherit; color: #272A44;
+  border: 1px solid #CBD1DC; border-radius: 4px; min-height: 92px; resize: vertical; }
+textarea:focus { outline: 2px solid #60B654; outline-offset: -1px; border-color: #60B654; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 980px) {
+  .app-wrap { grid-template-columns: 1fr; min-height: 0; }
+  .panel { max-height: none; overflow: visible; border-right: 0;
+    border-bottom: 1px solid #D8DCE4;
+    padding: 18px 16px 14px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right)); }
+  .panel img.brand { height: 40px; }
+  .panel h2 { font-size: 18px; }
+  .panel .tag { font-size: 13px; margin-bottom: 18px; }
+  .fieldset > legend { font-size: 11px; }
+  label { font-size: 13px; margin: 14px 0 5px; }
+  label .hint { font-size: 12px; }
+  /* 16px minimum stops iOS Safari from zooming the page on focus. */
+  input, select, textarea { font-size: 16px; padding: 11px 12px; border-radius: 6px; }
+  .sw input { padding: 0; width: 44px; height: 25px; border-radius: 25px; }
+  .sw input::after { width: 21px; height: 21px; }
+  .sw input:checked::after { transform: translateX(19px); }
+  .sw { font-size: 12px; }
+  button { padding: 15px; font-size: 16px; border-radius: 7px; min-height: 48px; }
+  .err, .warn { font-size: 13px; padding: 10px 12px; }
+  .stage { padding: 14px 10px 28px;
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right)); }
+  .stage-label { display: block; }
+  .btns { position: sticky; bottom: 0; z-index: 20;
+    margin-top: 18px; padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+    gap: 10px; box-shadow: 0 -6px 18px rgba(20,25,45,.10); }
+  .btns button { white-space: nowrap; padding-left: 6px; padding-right: 6px; }
+  .optcard { padding: 12px 13px 14px; }
+}
+@media (max-width: 400px) {
+  .btns button { font-size: 15px; letter-spacing: 0; }
+}
+@media (min-width: 640px) and (max-width: 980px) {
+  .panel { padding-bottom: 14px; }
+  .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; align-items: start; }
+  .fieldset { margin-bottom: 8px; }
+  .fieldset.opts-fs { grid-column: 1 / -1; }
+  .optwrap { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; align-items: start; }
+}
+@media (max-width: 639px) {
+  .two { grid-template-columns: 1fr; gap: 0; }
+  .panel { padding: 16px 13px 12px;
+    padding-left: max(13px, env(safe-area-inset-left));
+    padding-right: max(13px, env(safe-area-inset-right)); }
+  .stage { padding: 10px 6px 24px;
+    padding-left: max(6px, env(safe-area-inset-left));
+    padding-right: max(6px, env(safe-area-inset-right)); }
+  .panel h2 { font-size: 17px; }
+  .stage-label { margin-bottom: 8px; }
+  .mdl .mrow { grid-template-columns: 1fr; gap: 0; }
+}
+@media (max-height: 460px) and (orientation: landscape) {
+  .panel img.brand { height: 28px; margin-bottom: 8px; }
+  .panel .tag { margin-bottom: 10px; }
+  label { margin: 9px 0 3px; }
+  .btns { position: static; box-shadow: none; }
+}
+@media (hover: none) {
+  button.primary:hover { background: #60B654; }
+  button.ghost:hover { background: #F1F3F7; }
+  button.mail:hover { background: #272A44; }
+  button:active { transform: translateY(1px); opacity: .9; }
+}
+
+@media print {
+  @page { size: Letter; margin: 0; }
+  body.app { background: #fff; }
+  .panel, .mbk { display: none !important; }
+  .app-wrap { display: block; }
+  .stage { padding: 0; display: block; overflow: visible; }
+  .stage-inner { display: block; }
+  .stage-label { display: none !important; }
+  .sheetbox { transform: none !important; box-shadow: none; margin-bottom: 0 !important; }
+}
+</style>
+</head>
+<body class="app">
+<div class="app-wrap">
+
+  <form class="panel" id="f" onsubmit="return false;">
+    <img class="brand" src="" id="brandImg" alt="Swift Line Capital">
+    <h2>DSCR Term Sheet Generator</h2>
+    <div class="tag">Quote up to four DSCR options side by side, then download or email the term sheet.</div>
+
+    <div class="fields-grid">
+    <fieldset class="fieldset">
+      <legend>Client &amp; Property</legend>
+      <label>Quote Type <span class="req">*</span>
+        <select id="quoteType">
+          <option>Purchase</option>
+          <option>Rate &amp; Term Refinance</option>
+          <option>Cash-Out Refinance</option>
+        </select>
+      </label>
+      <label>Client Name <span class="req">*</span>
+        <input id="client" required autocomplete="name" autocapitalize="words" enterkeyhint="next"></label>
+      <div class="two">
+        <label>Phone
+          <input id="phone" type="tel" inputmode="tel" autocomplete="tel"
+                 placeholder="(555) 555-5555" enterkeyhint="next"></label>
+        <label>Email
+          <input id="email" type="email" inputmode="email" autocomplete="email"
+                 autocapitalize="off" autocorrect="off" spellcheck="false"
+                 placeholder="name@email.com" enterkeyhint="next"></label>
+      </div>
+      <label>Property Address <span class="req">*</span>
+        <input id="property" required autocomplete="street-address" autocapitalize="words"
+               placeholder="123 Main St, City, ST 00000" enterkeyhint="next"></label>
+      <div class="two">
+        <label>Credit Score
+          <input id="credit" type="text" inputmode="numeric" placeholder="720" enterkeyhint="next"></label>
+        <label>Date Issued<input id="dateIssued" type="date"></label>
+      </div>
+    </fieldset>
+
+    <fieldset class="fieldset">
+      <legend>Property Economics</legend>
+      <label id="lblVal">Purchase Price <span class="req">*</span>
+        <input id="propValue" required type="text" inputmode="decimal" autocomplete="off"
+               placeholder="$325,000" enterkeyhint="next"></label>
+      <label>Monthly Market Rent <span class="req">*</span>
+        <input id="rent" required type="text" inputmode="decimal" autocomplete="off"
+               placeholder="$2,650" enterkeyhint="next"></label>
+      <div class="two">
+        <label>Annual Property Taxes <span class="req">*</span>
+          <input id="taxes" required type="text" inputmode="decimal" autocomplete="off"
+                 placeholder="$3,400" enterkeyhint="next"></label>
+        <label>Annual Insurance <span class="req">*</span>
+          <input id="insurance" required type="text" inputmode="decimal" autocomplete="off"
+                 placeholder="$1,500" enterkeyhint="next"></label>
+      </div>
+      <div class="two">
+        <label>Monthly HOA <span class="opt">optional</span>
+          <input id="hoa" type="text" inputmode="decimal" autocomplete="off"
+                 placeholder="$0" enterkeyhint="next"></label>
+        <label id="lblPayoff">Existing Loan Payoff
+          <input id="payoff" type="text" inputmode="decimal" autocomplete="off"
+                 placeholder="$180,000" enterkeyhint="next"></label>
+      </div>
+      <label>Minimum DSCR Required
+        <span class="hint">Used only to flag options in this form. Never printed on the term sheet.</span>
+        <input id="minDscr" type="text" inputmode="decimal" value="1.00" enterkeyhint="next"></label>
+    </fieldset>
+
+    <fieldset class="fieldset opts-fs">
+      <legend>Loan Options</legend>
+      <span class="hint" style="display:block;margin-bottom:8px">Option 1 is always included. Turn on
+        options 2 to 4 to present a comparison. Columns resize automatically.</span>
+      <div id="optWrap" class="optwrap"></div>
+    </fieldset>
+
+    <fieldset class="fieldset">
+      <legend>Fees &amp; Escrows</legend>
+      <div class="two">
+        <label>Underwriting Fee
+          <input id="feeUw" type="text" inputmode="decimal" value="$1,495" enterkeyhint="next"></label>
+        <label>Flood / Tax Cert / CDA / VOE
+          <input id="feeFlood" type="text" inputmode="decimal" value="$350" enterkeyhint="next"></label>
+      </div>
+      <div class="two">
+        <label>Attorney / Doc Prep Fee
+          <input id="feeAtt" type="text" inputmode="decimal" value="$750" enterkeyhint="next"></label>
+        <label>Title &amp; Recording
+          <input id="feeTitle" type="text" inputmode="decimal" value="$2,200" enterkeyhint="next"></label>
+        </div>
+      <div class="two">
+        <label>Insurance Escrow (months)
+          <input id="escIns" type="text" inputmode="numeric" value="3" enterkeyhint="next"></label>
+        <label>Tax Escrow (months)
+          <input id="escTax" type="text" inputmode="numeric" value="3" enterkeyhint="done"></label>
+      </div>
+    </fieldset>
+    </div>
+
+    <div class="warn" id="dscrWarn" role="status" aria-live="polite"></div>
+    <div class="err" id="err" role="alert" aria-live="polite"></div>
+
+    <div class="btns">
+      <button type="button" class="primary" id="btnPdf">Download PDF</button>
+      <button type="button" class="ghost" id="btnReset">Clear Form</button>
+      <button type="button" class="mail wide" id="btnMail">Email to Client</button>
+    </div>
+  </form>
+
+  <div class="stage">
+    <div class="stage-inner">
+    <div class="stage-label">Live Preview</div>
+    <div class="sheetbox" id="sheetbox">
+
+<div class="page">
+
+  <header>
+    <img data-f="LOGO" src="" alt="Swift Line Capital">
+    <div class="title">
+      <h1>DSCR LOAN TERM SHEET</h1>
+      <div class="sub"><span data-f="QUOTE_TYPE"></span> &nbsp;|&nbsp; Rental Property Financing</div>
+    </div>
+  </header>
+  <div class="rule"></div>
+
+  <div class="parties">
+    <div><div class="k">Client</div><div class="v"><span data-f="CLIENT"></span></div></div>
+    <div><div class="k">Phone</div><div class="v"><span data-f="PHONE"></span></div></div>
+    <div><div class="k">Email</div><div class="v"><span data-f="EMAIL"></span></div></div>
+    <div class="wide"><div class="k">Subject Property</div><div class="v"><span data-f="PROPERTY"></span></div></div>
+  </div>
+
+  <div class="blk">
+    <div class="sechead">Property &amp; Income Summary</div>
+    <div class="card">
+      <div class="propgrid">
+        <div><div class="k"><span data-f="VAL_LABEL"></span></div><div class="v"><span data-f="PROP_VALUE"></span></div></div>
+        <div><div class="k">Monthly Market Rent</div><div class="v"><span data-f="RENT"></span></div></div>
+        <div><div class="k">Annual Taxes</div><div class="v"><span data-f="TAXES"></span></div></div>
+        <div><div class="k">Annual Insurance</div><div class="v"><span data-f="INSURANCE"></span></div></div>
+        <div><div class="k"><span data-f="LAST_LABEL"></span></div><div class="v"><span data-f="LAST_VALUE"></span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="blk">
+    <div class="sechead"><span data-f="OPTS_HEAD"></span></div>
+    <div class="card opts" id="optTable"></div>
+  </div>
+
+  <div class="fine"><span data-f="FINE_PRINT"></span></div>
+
+  <div class="ack">
+    <h3>Client Acknowledgment</h3>
+    <p>By signing below, the client acknowledges receipt of this term sheet and understands that the
+      options shown are quotes rather than a commitment to lend, and that final pricing is set at rate
+      lock following full underwriting review.</p>
+    <div class="siglines">
+      <div class="sig">Client Signature</div>
+      <div class="sig">Date</div>
+      <div class="sig">Printed Name</div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="disc">This term sheet is not a commitment to lend. All options, pricing, loan amounts and
+      payment figures are preliminary estimates, subject to change without notice, and contingent upon
+      satisfactory completion of underwriting review and lender requirements, including but not limited to
+      credit score, appraisal and appraiser market rent determination, lease review, property condition,
+      insurance, title, reserves and entity documentation. Debt service coverage ratio is gross market rent
+      divided by the monthly PITI shown above. Taxes, insurance and association dues are client-provided
+      estimates and will be replaced by verified figures at underwriting.</div>
+    <div class="contact">
+      <span class="co">Swift Line Capital, LLC</span>
+      <span class="meta">brett@swiftlinecapital.com &nbsp;&bull;&nbsp; (803) 653-6293 &nbsp;&bull;&nbsp; swiftlinecapital.com</span>
+    </div>
+  </footer>
+
+</div>
+
+    </div>
+    </div>
+  </div>
+</div>
+
+<div class="mbk" id="mbk" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="mdl">
+    <h3 id="mTitle">Email Term Sheet to Client</h3>
+    <div class="sub">Sends the PDF as an attachment from your Swift Line Capital mailbox.</div>
+    <label>From
+      <select id="mFrom"></select></label>
+    <label>To <span class="req">*</span>
+      <span class="hint">Separate multiple addresses with a comma</span>
+      <input id="mTo" type="email" inputmode="email" autocapitalize="off" autocorrect="off"
+             spellcheck="false" placeholder="client@email.com"></label>
+    <label>CC <span class="opt">optional</span>
+      <input id="mCc" type="email" inputmode="email" autocapitalize="off" autocorrect="off"
+             spellcheck="false" placeholder="processing@swiftlinecapital.com"></label>
+    <label>Subject
+      <input id="mSubj"></label>
+    <label>Message
+      <textarea id="mBody"></textarea></label>
+    <label>Send Passcode
+      <span class="hint">Stored on this device after the first send</span>
+      <input id="mPass" type="password" autocomplete="off"></label>
+    <div class="msg" id="mMsg"></div>
+    <div class="mrow">
+      <button type="button" class="primary" id="mSend">Send</button>
+      <button type="button" class="ghost" id="mCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const LOGO = "data:image/png;base64,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";
+
+/* Paste the Apps Script /exec URL here to turn on Email to Client. */
+const ENDPOINT = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
+const PASS_KEY = "slc_mail_pass";
+const FROM_KEY = "slc_mail_from";
+const DEFAULT_SENDERS = ["processing@swiftlinecapital.com", "brett@swiftlinecapital.com",
+                         "bryan@swiftlinecapital.com", "closing@swiftlinecapital.com"];
+
+const $ = id => document.getElementById(id);
+
+/* ===== Loan structures ===== */
+const STRUCTS = {
+  "30 Year Fixed":    { io: false, amort: "30 Years", pay: "Principal &amp; Interest",
+                        note: "Fixed for the full term" },
+  "5/6 ARM":          { io: false, amort: "30 Years", pay: "Principal &amp; Interest",
+                        note: "Fixed 5 yrs, adjusts every 6 mos" },
+  "7/6 ARM":          { io: false, amort: "30 Years", pay: "Principal &amp; Interest",
+                        note: "Fixed 7 yrs, adjusts every 6 mos" },
+  "10/6 ARM":         { io: false, amort: "30 Years", pay: "Principal &amp; Interest",
+                        note: "Fixed 10 yrs, adjusts every 6 mos" },
+  "30 Year Fixed IO": { io: true,  amort: "10 Yr IO + 20 Yr Amort", pay: "Interest Only",
+                        note: "Interest only first 10 years" },
+  "40 Year IO":       { io: true,  amort: "10 Yr IO + 30 Yr Amort", pay: "Interest Only",
+                        note: "Interest only first 10 years" }
+};
+const STRUCT_LIST = Object.keys(STRUCTS);
+const PREPAYS = ["5 Year Step Down", "3 Year Step Down", "1 Year", "None"];
+const MAX_OPTS = 4;
+
+/* ===== Parsing and formatting ===== */
+function num(v) {
+  if (v === null || v === undefined) return 0;
+  const n = parseFloat(String(v).replace(/[^0-9.\-]/g, ""));
+  return isFinite(n) ? n : 0;
+}
+// Accepts "$250,000", "250000", "80%" (percent of base) or "20% down".
+function money(v, base) {
+  const s = String(v || "").trim();
+  if (!s) return 0;
+  if (s.indexOf("%") !== -1) {
+    const pct = num(s) / 100;
+    if (!base) return 0;
+    return /down/i.test(s) ? base * (1 - pct) : base * pct;
+  }
+  return num(s);
+}
+function pct(v) {
+  const n = num(v);
+  return n > 1 ? n / 100 : n;   // "7.25" and "0.0725" both mean 7.25%
+}
+const fmt0 = n => "$" + Math.round(n).toLocaleString("en-US");
+const fmtPct = n => (n * 100).toFixed(3).replace(/0+$/, "").replace(/\.$/, "") + "%";
+const fmtPct2 = n => (n * 100).toFixed(2) + "%";
+const fmt2 = n => n.toFixed(2);
+
+function pmt(rate, nper, pv) {
+  if (!pv) return 0;
+  if (rate === 0) return pv / nper;
+  return rate * pv / (1 - Math.pow(1 + rate, -nper));
+}
+
+/* ===== Option rows in the form ===== */
+function optCard(i) {
+  const on = i === 0;
+  const d = document.createElement("div");
+  d.className = "optcard" + (on ? "" : " off");
+  d.dataset.i = i;
+  d.innerHTML =
+    '<div class="ohdr">' +
+      '<span class="oname">Option ' + (i + 1) + '</span>' +
+      '<span style="display:flex;align-items:center;gap:8px">' +
+        '<span class="dscrchip" data-chip style="display:none"></span>' +
+        '<label class="sw"><input type="checkbox" class="oon"' +
+          (on ? " checked" : "") + (i === 0 ? " disabled" : "") + '>' +
+          '<span>' + (i === 0 ? "Always on" : "Include") + '</span></label>' +
+      '</span>' +
+    '</div>' +
+    '<div class="obody">' +
+      '<label>Loan Structure<select class="ostruct">' +
+        STRUCT_LIST.map(s => '<option>' + s + '</option>').join("") +
+      '</select></label>' +
+      '<label>Loan Amount' +
+        '<span class="hint">Enter a $ amount, "80%" of value, or "25% down"</span>' +
+        '<input class="oloan" type="text" inputmode="decimal" placeholder="80%"></label>' +
+      '<div class="two">' +
+        '<label>Interest Rate<input class="orate" type="text" inputmode="decimal" placeholder="7.25%"></label>' +
+        '<label>Origination<input class="oorig" type="text" inputmode="decimal" placeholder="2%"></label>' +
+      '</div>' +
+      '<label>Prepayment Penalty<select class="oprepay">' +
+        PREPAYS.map(p => '<option>' + p + '</option>').join("") +
+      '</select></label>' +
+    '</div>';
+  return d;
+}
+
+function buildOptCards() {
+  const wrap = $("optWrap");
+  for (let i = 0; i < MAX_OPTS; i++) wrap.appendChild(optCard(i));
+  wrap.querySelectorAll(".optcard").forEach(card => {
+    const cb = card.querySelector(".oon");
+    cb.addEventListener("change", () => {
+      card.classList.toggle("off", !cb.checked);
+      paint();
+    });
+  });
+  // Sensible starting point: one 30 Year Fixed at 80% LTV.
+  const first = wrap.querySelector(".optcard");
+  first.querySelector(".oloan").value = "80%";
+  first.querySelector(".oorig").value = "2%";
+}
+
+function readOpts() {
+  const base = money($("propValue").value);
+  const out = [];
+  document.querySelectorAll(".optcard").forEach(card => {
+    const on = card.querySelector(".oon").checked;
+    if (!on) return;
+    out.push({
+      card: card,
+      label: "Option " + (Number(card.dataset.i) + 1),
+      struct: card.querySelector(".ostruct").value,
+      loanRaw: card.querySelector(".oloan").value,
+      loan: money(card.querySelector(".oloan").value, base),
+      rate: pct(card.querySelector(".orate").value),
+      origPct: pct(card.querySelector(".oorig").value),
+      origRaw: card.querySelector(".oorig").value,
+      prepay: card.querySelector(".oprepay").value
+    });
+  });
+  return out;
+}
+
+/* ===== Calculation ===== */
+function compute() {
+  const qt = $("quoteType").value;
+  const isRefi = qt !== "Purchase";
+  const value = money($("propValue").value);
+  const rent = money($("rent").value);
+  const annTax = money($("taxes").value);
+  const annIns = money($("insurance").value);
+  const hoa = money($("hoa").value);
+  const payoff = isRefi ? money($("payoff").value) : 0;
+  const mTax = annTax / 12, mIns = annIns / 12;
+  const fixedFees = money($("feeUw").value) + money($("feeFlood").value) +
+                    money($("feeAtt").value) + money($("feeTitle").value);
+  const escIns = num($("escIns").value), escTax = num($("escTax").value);
+  const escrow = mIns * escIns + mTax * escTax;
+  const minD = num($("minDscr").value) || 0;
+
+  const opts = readOpts().map(o => {
+    const r = {};
+    Object.assign(r, o);
+    const meta = STRUCTS[o.struct];
+    r.meta = meta;
+    r.ltv = value ? o.loan / value : 0;
+    r.pi = meta.io ? o.loan * o.rate / 12 : pmt(o.rate / 12, 360, o.loan);
+    r.tih = mTax + mIns + hoa;
+    r.piti = r.pi + r.tih;
+    r.dscr = r.piti ? rent / r.piti : 0;
+    r.origAmt = o.loan * o.origPct;
+    r.fees = r.origAmt + fixedFees;
+    r.escrow = escrow;
+    r.down = Math.max(0, value - o.loan);
+    r.cash = isRefi ? (o.loan - r.fees - escrow - payoff)
+                    : (r.down + r.fees + escrow);
+    r.low = minD > 0 && r.dscr > 0 && r.dscr < minD;
+    return r;
+  });
+
+  return { qt, isRefi, value, rent, annTax, annIns, hoa, payoff, mTax, mIns,
+           fixedFees, escIns, escTax, escrow, minD, opts };
+}
+
+/* ===== Options table ===== */
+function cellsRow(cls, label, sub, vals) {
+  let h = '<div class="orow ' + cls + '"><div>' + label +
+          (sub ? '<span class="sub">' + sub + '</span>' : "") + '</div>';
+  vals.forEach(v => { h += '<div>' + v + '</div>'; });
+  return h + '</div>';
+}
+function band(text) {
+  return '<div class="orow band"><div>' + text + '</div></div>';
+}
+
+function optsTableHTML(c) {
+  const o = c.opts;
+  if (!o.length) return '<div class="row"><span class="k">Turn on at least one option.</span></div>';
+  const n = o.length;
+  // Label column takes a bigger share when there are fewer options to balance.
+  const lab = n >= 4 ? 1.75 : n === 3 ? 1.6 : n === 2 ? 1.4 : 1.2;
+  const cols = lab + "fr " + Array(n).fill("1fr").join(" ");
+  let h = "";
+
+  h += '<div class="orow ohead" style="grid-template-columns:' + cols + '">' +
+       '<div>Terms</div>' +
+       o.map(x => '<div>' + x.label + '</div>').join("") + '</div>';
+
+  const R = (cls, label, sub, fn) =>
+    cellsRow(cls, label, sub, o.map(fn)).replace('class="orow ' + cls + '"',
+      'class="orow ' + cls + '" style="grid-template-columns:' + cols + '"');
+
+  h += band("Structure &amp; Pricing");
+  h += R("", "Loan Structure", "", x => x.struct + '<span class="sub">' + x.meta.note + '</span>');
+  h += R("alt", "Interest Rate", "", x => x.rate ? fmtPct(x.rate) : "&mdash;");
+  h += R("", "Payment Type", "", x => x.meta.pay);
+  h += R("alt", "Amortization", "", x => x.meta.amort);
+  h += R("", "Prepayment Penalty", "", x => x.prepay);
+  h += R("alt", "Loan Amount", "", x => x.loan ? fmt0(x.loan) : "&mdash;");
+  h += R("", c.isRefi ? "Loan to Value" : "Loan to Value / Purchase Price", "",
+         x => x.ltv ? fmtPct2(x.ltv) : "&mdash;");
+
+  h += band("Estimated Monthly Payment");
+  h += R("", x_pi_label(c), "", x => fmt0(x.pi));
+  h += R("alt", "Taxes, Insurance &amp; HOA", "Monthly escrowed amount", x => fmt0(x.tih));
+  h += R("", "Total Monthly PITI", "", x => fmt0(x.piti));
+  h += R("alt", "Debt Service Coverage Ratio", "Gross market rent &divide; PITI",
+         x => x.dscr ? fmt2(x.dscr) : "&mdash;");
+
+  h += band(c.isRefi ? "Estimated Closing Figures" : "Estimated Funds Due at Closing");
+  if (c.isRefi) {
+    h += R("", "Existing Loan Payoff", "", () => fmt0(c.payoff));
+  } else {
+    h += R("", "Down Payment", "", x => fmt0(x.down));
+  }
+  h += R("alt", "Origination Fee", "", x =>
+         fmt0(x.origAmt) + '<span class="sub">' + fmtPct2(x.origPct) + ' of loan amount</span>');
+  h += R("", "Lender &amp; Third-Party Fees",
+         "Underwriting, flood/tax cert, CDA/VOE, attorney, title &amp; recording",
+         () => fmt0(c.fixedFees));
+  h += R("alt", "Escrow Deposits",
+         c.escIns + " mo. insurance, " + c.escTax + " mo. taxes", () => fmt0(c.escrow));
+  h += R("total", c.isRefi ? "Estimated Net Proceeds to Client" : "Estimated Cash to Close", "",
+         x => (x.cash < 0 ? "(" + fmt0(Math.abs(x.cash)) + ")" : fmt0(x.cash)));
+
+  return h;
+}
+function x_pi_label(c) {
+  const anyIo = c.opts.some(x => x.meta.io);
+  const allIo = c.opts.every(x => x.meta.io);
+  if (allIo) return "Monthly Interest Only Payment";
+  return anyIo ? "Monthly Loan Payment" : "Monthly Principal &amp; Interest";
+}
+
+/* ===== Fine print ===== */
+function finePrint(c) {
+  const n = c.opts.length;
+  const base = n > 1 ? "Select the option that best fits the hold strategy. " : "";
+  const esc = "Escrows assume " + c.escIns + " mo. insurance and " + c.escTax + " mo. taxes at closing. ";
+  const tail = c.isRefi
+    ? "Net proceeds are shown after payoff of the existing lien, fees and escrows, and exclude per diem interest and any prepayment penalty charged by the existing lender."
+    : "Cash to close excludes per diem interest and any seller or buyer credits, and assumes the client pays all lender and third-party fees at closing.";
+  return base + esc + tail;
+}
+
+/* ===== Paint ===== */
+function paint() {
+  const c = compute();
+  const isRefi = c.isRefi;
+
+  $("lblVal").firstChild.nodeValue = (isRefi ? "Property Value" : "Purchase Price") + " ";
+  $("lblPayoff").style.display = isRefi ? "" : "none";
+  $("lblPayoff").parentElement.style.gridTemplateColumns = isRefi ? "" : "1fr";
+
+  const vals = {
+    LOGO: LOGO,
+    QUOTE_TYPE: c.qt === "Purchase" ? "DSCR Purchase" : "DSCR " + c.qt,
+    CLIENT: $("client").value || "—",
+    PHONE: $("phone").value || "—",
+    EMAIL: $("email").value || "—",
+    PROPERTY: $("property").value || "—",
+    VAL_LABEL: isRefi ? "Property Value" : "Purchase Price",
+    PROP_VALUE: c.value ? fmt0(c.value) : "—",
+    RENT: c.rent ? fmt0(c.rent) : "—",
+    TAXES: c.annTax ? fmt0(c.annTax) : "—",
+    INSURANCE: c.annIns ? fmt0(c.annIns) : "—",
+    LAST_LABEL: isRefi ? "Existing Payoff" : "Credit Score",
+    LAST_VALUE: isRefi ? (c.payoff ? fmt0(c.payoff) : "—")
+                       : ($("credit").value || "—"),
+    OPTS_HEAD: c.opts.length > 1 ? "Loan Options — Select One" : "Loan Terms",
+    FINE_PRINT: finePrint(c)
+  };
+
+  document.querySelectorAll("#sheetbox [data-f]").forEach(el => {
+    const k = el.getAttribute("data-f");
+    if (el.tagName === "IMG") el.src = vals[k] || "";
+    else el.textContent = vals[k] !== undefined ? vals[k] : "";
+  });
+
+  const t = $("optTable");
+  t.innerHTML = optsTableHTML(c);
+  t.classList.toggle("wide", c.opts.length <= 2);
+
+  // DSCR flags live in the form only, never on the client-facing sheet.
+  document.querySelectorAll(".optcard").forEach(card => {
+    const chip = card.querySelector("[data-chip]");
+    const hit = c.opts.find(x => x.card === card);
+    if (!hit || !hit.dscr) { chip.style.display = "none"; return; }
+    chip.style.display = "inline-block";
+    chip.textContent = "DSCR " + fmt2(hit.dscr);
+    chip.classList.toggle("low", !!hit.low);
+  });
+  const lows = c.opts.filter(x => x.low);
+  const w = $("dscrWarn");
+  if (lows.length) {
+    w.style.display = "block";
+    w.textContent = lows.map(x => x.label).join(", ") +
+      (lows.length > 1 ? " fall" : " falls") + " below the " + fmt2(c.minD) +
+      " minimum DSCR. This warning is not printed on the term sheet.";
+  } else { w.style.display = "none"; }
+
+  document.title = "DSCR Term Sheet — " + ($("client").value || "Swift Line Capital");
+}
+
+/* ===== Validation ===== */
+const REQUIRED = [
+  ["client", "Client Name"], ["property", "Property Address"],
+  ["propValue", "Purchase Price / Property Value"], ["rent", "Monthly Market Rent"],
+  ["taxes", "Annual Property Taxes"], ["insurance", "Annual Insurance"]
+];
+
+function validate() {
+  const missing = [];
+  document.querySelectorAll("input").forEach(i => i.classList.remove("bad"));
+  REQUIRED.forEach(([id, label]) => {
+    if (!String($(id).value).trim()) { missing.push(label); $(id).classList.add("bad"); }
+  });
+  const opts = readOpts();
+  if (!opts.length) missing.push("at least one loan option");
+  opts.forEach(o => {
+    if (o.loan <= 0) {
+      missing.push(o.label + " loan amount");
+      o.card.querySelector(".oloan").classList.add("bad");
+    }
+    if (o.rate <= 0) {
+      missing.push(o.label + " interest rate");
+      o.card.querySelector(".orate").classList.add("bad");
+    }
+    if (!String(o.origRaw).trim()) {
+      missing.push(o.label + " origination");
+      o.card.querySelector(".oorig").classList.add("bad");
+    }
+  });
+  const box = $("err");
+  if (missing.length) {
+    box.style.display = "block";
+    box.textContent = "Required before generating: " + missing.join(", ") + ".";
+    box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    return false;
+  }
+  box.style.display = "none";
+  return true;
+}
+
+/* ===== Preview fitting ===== */
+const SHEET_W = 8.5 * 96;
+const SHEET_H = 11 * 96;
+
+function fitPreview() {
+  const stage = document.querySelector(".stage");
+  const box = $("sheetbox");
+  if (!stage || !box) return;
+  const cs = getComputedStyle(stage);
+  const avail = stage.clientWidth
+    - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+  const scale = Math.max(0.15, Math.min(1, avail / SHEET_W));
+  box.style.transform = "scale(" + scale + ")";
+  box.style.marginBottom = (scale < 1 ? -(SHEET_H * (1 - scale)) : 0) + "px";
+}
+let fitTimer = null;
+function scheduleFit() {
+  if (fitTimer) cancelAnimationFrame(fitTimer);
+  fitTimer = requestAnimationFrame(fitPreview);
+}
+function beforePrintFix() {
+  const box = $("sheetbox");
+  box.style.transform = "none";
+  box.style.marginBottom = "0px";
+}
+window.addEventListener("beforeprint", beforePrintFix);
+window.addEventListener("afterprint", scheduleFit);
+
+/* ===== Email ===== */
+function senderList(list) {
+  const sel = $("mFrom");
+  const saved = (() => { try { return localStorage.getItem(FROM_KEY) || ""; } catch (e) { return ""; } })();
+  sel.innerHTML = list.map(a => '<option value="' + a + '">' + a + '</option>').join("");
+  if (saved && list.indexOf(saved) !== -1) sel.value = saved;
+}
+async function loadSenders() {
+  senderList(DEFAULT_SENDERS);
+  if (!/^https:\/\//.test(ENDPOINT)) return;
+  try {
+    const r = await fetch(ENDPOINT, { method: "GET" });
+    const j = await r.json();
+    if (j && j.senders && j.senders.length) senderList(j.senders);
+  } catch (e) { /* keep the defaults */ }
+}
+
+async function sheetPdfBase64() {
+  const box = $("sheetbox");
+  const prevT = box.style.transform, prevM = box.style.marginBottom;
+  box.style.transform = "none"; box.style.marginBottom = "0px";
+  const canvas = await html2canvas(box, {
+    scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false, windowWidth: 816
+  });
+  box.style.transform = prevT; box.style.marginBottom = prevM;
+  const img = canvas.toDataURL("image/jpeg", 0.92);
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: "pt", format: "letter", orientation: "portrait" });
+  pdf.addImage(img, "JPEG", 0, 0, 612, 792);
+  return pdf.output("datauristring").split(",")[1];
+}
+
+function openMail() {
+  if (!validate()) return;
+  paint();
+  const name = $("client").value || "Client";
+  $("mTo").value = $("email").value || "";
+  $("mSubj").value = "DSCR Loan Term Sheet — " + ($("property").value || name);
+  $("mBody").value =
+    "Hi " + name.split(" ")[0] + ",\n\n" +
+    "Attached is the DSCR term sheet for " + ($("property").value || "the subject property") + ".\n\n" +
+    "Please review the options and let me know which structure you would like to move forward with, " +
+    "and I will get the file started.\n\n" +
+    "Thanks,\nSwift Line Capital";
+  try { $("mPass").value = localStorage.getItem(PASS_KEY) || ""; } catch (e) {}
+  $("mMsg").className = "msg";
+  $("mMsg").textContent = "";
+  $("mbk").classList.add("on");
+}
+function closeMail() { $("mbk").classList.remove("on"); }
+
+async function sendMail() {
+  const msg = $("mMsg");
+  const to = $("mTo").value.trim();
+  if (!to) { msg.className = "msg no"; msg.textContent = "Add at least one recipient."; return; }
+  if (!/^https:\/\//.test(ENDPOINT)) {
+    msg.className = "msg no";
+    msg.textContent = "Email is not configured yet. Paste the Apps Script /exec URL into ENDPOINT " +
+                      "at the top of this page's script, then redeploy.";
+    return;
+  }
+  const btn = $("mSend");
+  btn.disabled = true; btn.textContent = "Sending…";
+  msg.className = "msg"; msg.textContent = "";
+  try {
+    const pdfBase64 = await sheetPdfBase64();
+    const body = {
+      passcode: $("mPass").value,
+      from: $("mFrom").value,
+      to: to,
+      cc: $("mCc").value.trim(),
+      subject: $("mSubj").value,
+      body: $("mBody").value,
+      filename: "DSCR-Term-Sheet-" +
+        ($("client").value || "Client").replace(/[^A-Za-z0-9]+/g, "-") + ".pdf",
+      pdfBase64: pdfBase64
+    };
+    const r = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(body)
+    });
+    const j = await r.json();
+    if (j && j.ok) {
+      try {
+        localStorage.setItem(PASS_KEY, $("mPass").value);
+        localStorage.setItem(FROM_KEY, $("mFrom").value);
+      } catch (e) {}
+      msg.className = "msg ok";
+      msg.textContent = "Sent to " + (j.to || to) + " as " + (j.sentAs || $("mFrom").value) + ".";
+      setTimeout(closeMail, 1600);
+    } else {
+      msg.className = "msg no";
+      msg.textContent = (j && j.error) ? j.error : "Send failed. Check the passcode and try again.";
+    }
+  } catch (e) {
+    msg.className = "msg no";
+    msg.textContent = "Send failed: " + (e && e.message ? e.message : "network error") + ".";
+  }
+  btn.disabled = false; btn.textContent = "Send";
+}
+
+/* ===== Wiring ===== */
+buildOptCards();
+$("brandImg").src = LOGO;
+
+function bindInputs() {
+  document.querySelectorAll("#f input, #f select").forEach(el => {
+    if (el.dataset.bound) return;
+    el.dataset.bound = "1";
+    el.addEventListener("input", paint);
+    el.addEventListener("change", paint);
+  });
+}
+bindInputs();
+
+$("btnPdf").addEventListener("click", () => {
+  if (!validate()) return;
+  paint();
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  setTimeout(() => {
+    beforePrintFix();
+    setTimeout(() => { window.print(); scheduleFit(); }, 80);
+  }, 60);
+});
+$("btnReset").addEventListener("click", () => {
+  $("f").reset();
+  $("optWrap").innerHTML = "";
+  buildOptCards();
+  bindInputs();
+  $("dateIssued").valueAsDate = new Date();
+  $("err").style.display = "none";
+  $("dscrWarn").style.display = "none";
+  paint();
+});
+$("btnMail").addEventListener("click", openMail);
+$("mCancel").addEventListener("click", closeMail);
+$("mSend").addEventListener("click", sendMail);
+$("mbk").addEventListener("click", e => { if (e.target === $("mbk")) closeMail(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && $("mbk").classList.contains("on")) closeMail();
+});
+
+window.addEventListener("resize", scheduleFit);
+window.addEventListener("orientationchange", () => setTimeout(fitPreview, 250));
+if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleFit);
+if (window.ResizeObserver) {
+  new ResizeObserver(scheduleFit).observe(document.querySelector(".stage"));
+}
+window.addEventListener("load", scheduleFit);
+
+$("dateIssued").valueAsDate = new Date();
+loadSenders();
+paint(); fitPreview();
+</script>
+</body>
+</html>
